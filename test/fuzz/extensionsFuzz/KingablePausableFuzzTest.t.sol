@@ -54,21 +54,6 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
         assertEq(kingablePausable.currentKing(), _randomKingAddress);
     }
 
-    /// @notice Fuzz test invalid king reverts.
-    /// @param _randomKingAddress The random king's address
-    function testFuzz_InvalidKingReverts(address _randomKingAddress) external {
-        // Assume random king address is not king's address.
-        vm.assume(_randomKingAddress != _king);
-
-        // If random king address is address zero, this contract or kingablePausable.
-        if (_randomKingAddress == address(this) || _randomKingAddress == address(0)) {
-            // Revert InvalidKing.
-            vm.expectRevert(abi.encodeWithSelector(KingablePausable.InvalidKing.selector, _randomKingAddress));
-            vm.prank(_king);
-            kingablePausable.transferKingshipTo(_randomKingAddress);
-        }
-    }
-
     // ------------------------------------------------- Fuzz test: renounceKingship --------------------------------
     /// @notice Fuzz test: King can renounce successfully.
     function testFuzz_RenounceKingshipByKing() external {

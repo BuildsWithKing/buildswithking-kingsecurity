@@ -15,7 +15,7 @@ import {KingPausableUnitTest} from "../../unit/extensionsunit/KingPausableUnitTe
 import {KingPausable} from "../../../src/extensions/KingPausable.sol";
 
 contract KingPausableFuzzTest is KingPausableUnitTest {
-     // ----------------------------------------------- Fuzz Test: activate contract ---------------------------------------------
+    // ----------------------------------------------- Fuzz Test: activate contract ---------------------------------------------
 
     /// @notice Fuzz test: Activate contract reverts.
     /// @param _randomUserAddress The random user's address.

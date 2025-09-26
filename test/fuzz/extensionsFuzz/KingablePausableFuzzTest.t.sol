@@ -61,9 +61,7 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
         vm.assume(_randomKingAddress != _king);
 
         // If random king address is address zero, this contract or kingablePausable.
-        if (
-            _randomKingAddress == address(this) || _randomKingAddress == address(0)
-        ) {
+        if (_randomKingAddress == address(this) || _randomKingAddress == address(0)) {
             // Revert InvalidKing.
             vm.expectRevert(abi.encodeWithSelector(KingablePausable.InvalidKing.selector, _randomKingAddress));
             vm.prank(_king);

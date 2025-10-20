@@ -24,8 +24,8 @@ contract KingRejectETHTest is BaseTest {
         payable(address(kingRejectETH)).call{value: ETH_AMOUNT}("");
     }
     // ------------------------------------------ Unit Test: Fallback Rejects ETH ---------------------
-    /// @notice Test to ensure fallback reverts.
 
+    /// @notice Test to ensure fallback reverts.
     function testRejectETH_FallbackReverts() public {
         // Revert `ETHRejected`, since the contract rejects ETH.
         vm.expectRevert(KingRejectETH.EthRejected.selector);

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.30;
 
 /// @title KingableEOAsUnitTest.
 /// @author Michealking (@BuildsWithKing)
-/// @custom: security-contact buildswithking@gmail.com
+/// @custom:securitycontact buildswithking@gmail.com
 /**
- * @notice Created on the 13th Of Sept, 2025.
+ * @notice Created on the 13th of Sept, 2025.
  *
  *     KingableEOAs unit test contract, verifying all features works as intended.
  */
-pragma solidity ^0.8.30;
 
 /// @notice Imports BaseTest, KingableEOAs, KingableEOAsMockTest contract.
 import {BaseTest} from "../BaseTest.t.sol";
@@ -19,109 +19,109 @@ contract KingableEOAsUnitTest is BaseTest {
     // ------------------------------------------------- Constructor test functions. -----------------------------
 
     /// @notice Test to ensure constructor sets initial king at deployment.
-    function testConstructor_SetsKingAtDeployment() external view {
+    function testConstructor_SetsKingAtDeployment() public view {
         // Assign _currentKing.
         address _currentKing = kingableEOAs.currentKing();
 
         // Assert both are equal.
-        assertEq(_king, _currentKing);
+        assertEq(KING, _currentKing);
     }
 
     /// @notice Test to ensure constructor emits KingshipTransferred event.
-    function testConstructor_EmitsEvent() external {
+    function testConstructor_EmitsEvent() public {
         // Emit `KingshipTransferred`.
         vm.expectEmit(true, true, false, false);
-        emit KingableEOAs.KingshipTransferred(_zero, _king);
-        kingableEOAs = new KingableEOAsMockTest(_king);
+        emit KingableEOAs.KingshipTransferred(ZERO, KING);
+        kingableEOAs = new KingableEOAsMockTest(KING);
     }
 
     /// @notice Test to ensure address zero reverts.
-    function testZeroAddress_RevertsIfSetAsInitialKing() external {
+    function testZeroAddress_RevertsIfSetAsInitialKing() public {
         // Revert `InvalidKing`, if address zero is set as initial king.
-        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.InvalidKing.selector, _zero));
-        kingableEOAs = new KingableEOAsMockTest(_zero);
+        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.InvalidKing.selector, ZERO));
+        kingableEOAs = new KingableEOAsMockTest(ZERO);
     }
 
     /// @notice Test to ensure contract addresses reverts.
-    function testContractAddress_RevertsIfSetAsInitialKing() external {
+    function testContractAddress_RevertsIfSetAsInitialKing() public {
         // Revert `InvalidKing`, if a contract address is set as initial king.
-        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.InvalidKing.selector, _contractKing));
-        kingableEOAs = new KingableEOAsMockTest(_contractKing);
+        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.InvalidKing.selector, CONTRACTKING));
+        kingableEOAs = new KingableEOAsMockTest(CONTRACTKING);
     }
 
     // ----------------------------------------------------- King's test write functions. -----------------------------
 
-    /// @notice Test to ensure king can transfer kingship.
-    function testTransferKingship_Succeeds() external {
-        // Prank as king.
-        vm.prank(_king);
+    /// @notice Test to ensure KING can transfer kingship.
+    function testTransferKingship_Succeeds() public {
+        // Prank as KING.
+        vm.prank(KING);
         vm.expectEmit(true, true, false, false);
-        emit KingableEOAs.KingshipTransferred(_king, _newKing);
-        kingableEOAs.transferKingshipTo(_newKing);
+        emit KingableEOAs.KingshipTransferred(KING, NEWKING);
+        kingableEOAs.transferKingshipTo(NEWKING);
 
         // Revert `Unauthorized`.
-        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.Unauthorized.selector, _king, _newKing));
-        vm.prank(_king);
-        kingableEOAs.transferKingshipTo(_newKing);
+        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.Unauthorized.selector, KING, NEWKING));
+        vm.prank(KING);
+        kingableEOAs.transferKingshipTo(NEWKING);
     }
 
-    /// @notice Test to ensure king can't transfer kingship to self.
-    function testTransferKingship_RevertsIfSelf() external {
+    /// @notice Test to ensure KING can't transfer kingship to self.
+    function testTransferKingship_RevertsIfSelf() public {
         // Revert `SameKing`.
-        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.SameKing.selector, _king));
-        vm.prank(_king);
-        kingableEOAs.transferKingshipTo(_king);
+        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.SameKing.selector, KING));
+        vm.prank(KING);
+        kingableEOAs.transferKingshipTo(KING);
 
-        // Assert current king is still _king.
-        assertEq(kingableEOAs.currentKing(), _king);
+        // Assert current king is still KING.
+        assertEq(kingableEOAs.currentKing(), KING);
     }
 
     /// @notice Test to ensure king can't transfer kingship to contract address.
-    function testTransferKingship_RevertsIfContractAddress() external {
+    function testTransferKingship_RevertsIfContractAddress() public {
         // Revert `InvalidKing`.
-        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.InvalidKing.selector, _contractKing));
-        vm.prank(_king);
-        kingableEOAs.transferKingshipTo(_contractKing);
+        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.InvalidKing.selector, CONTRACTKING));
+        vm.prank(KING);
+        kingableEOAs.transferKingshipTo(CONTRACTKING);
 
-        // Assert current king is still _king.
-        assertEq(kingableEOAs.currentKing(), _king);
+        // Assert current king is still KING.
+        assertEq(kingableEOAs.currentKing(), KING);
     }
 
     /// @notice Test to ensure only king can transfer kingship.
-    function testTransferKingship_RevertsIfNotKing() external {
+    function testTransferKingship_RevertsIfNotKing() public {
         // Revert `Unauthorized`.
-        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.Unauthorized.selector, _user2, _king));
-        vm.prank(_user2);
-        kingableEOAs.transferKingshipTo(_newKing);
+        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.Unauthorized.selector, USER2, KING));
+        vm.prank(USER2);
+        kingableEOAs.transferKingshipTo(NEWKING);
 
-        // Assert current king is still _king.
-        assertEq(kingableEOAs.currentKing(), _king);
+        // Assert current king is still KING.
+        assertEq(kingableEOAs.currentKing(), KING);
     }
 
     /// @notice Test to ensure king can renounce kingship.
-    function testRenounceKingship_Succeeds() external {
+    function testRenounceKingship_Succeeds() public {
         // Prank as king.
-        vm.prank(_king);
+        vm.prank(KING);
         vm.expectEmit(true, true, false, false);
-        emit KingableEOAs.KingshipRenounced(_king, _zero);
+        emit KingableEOAs.KingshipRenounced(KING, ZERO);
         kingableEOAs.renounceKingship();
 
         // Revert `Unauthorized`.
-        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.Unauthorized.selector, _king, _zero));
-        vm.prank(_king);
+        vm.expectRevert(abi.encodeWithSelector(KingableEOAs.Unauthorized.selector, KING, ZERO));
+        vm.prank(KING);
         kingableEOAs.renounceKingship();
 
-        // Assert address zero is new king.
-        assertEq(kingableEOAs.currentKing(), _zero);
+        // Assert address ZERO is new king.
+        assertEq(kingableEOAs.currentKing(), ZERO);
     }
 
     // --------------------------------------------------- Users test read functions. --------------------------------------
 
     /// @notice Test to ensure isKing returns `true` or `false`.
-    function testIsKing() external view {
+    function testIsKing() public view {
         // Assign isKing.
-        bool isKing = kingableEOAs.isKing(_zero);
-        bool king = kingableEOAs.isKing(_king);
+        bool isKing = kingableEOAs.isKing(ZERO);
+        bool king = kingableEOAs.isKing(KING);
 
         // Assert both are equal.
         assertEq(isKing, false);

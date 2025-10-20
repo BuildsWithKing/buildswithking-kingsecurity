@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.30;
 
 /// @title KingImmutableUnitTest.
 /// @author Michealking (@BuildsWithKing)
-/// @custom: security-contact buildswithking@gmail.com
+/// @custom:securitycontact buildswithking@gmail.com
 /**
- * @notice Created on the 24th Of Sept, 2025.
+ * @notice Created on the 24th of Sept, 2025.
  *
  *     KingImmutable unit test contract, verifying all features works as intended.
  */
-pragma solidity ^0.8.30;
 
 /// @notice Imports BaseTest, KingImmutable, KingImmutableMockTest contracts.
 import {BaseTest} from "../BaseTest.t.sol";
@@ -24,22 +24,22 @@ contract KingImmutableUnitTest is BaseTest {
         address _currentKing = kingImmutable.currentKing();
 
         // Assert both are equal.
-        assertEq(_king, _currentKing);
+        assertEq(KING, _currentKing);
     }
 
     /// @notice Test to ensure constructor emits KingshipDeclared event.
     function testConstructor_EmitsEvent() external {
         // Emit `KingshipDeclared`.
         vm.expectEmit(true, false, false, false);
-        emit KingImmutable.KingshipDeclared(_king);
-        kingImmutable = new KingImmutableMockTest(_king);
+        emit KingImmutable.KingshipDeclared(KING);
+        kingImmutable = new KingImmutableMockTest(KING);
     }
 
     /// @notice Test to ensure address zero reverts.
     function testZeroAddress_RevertsIfSetAsInitialKing() external {
         // Revert `InvalidKing`, if address zero is set as initial king.
-        vm.expectRevert(abi.encodeWithSelector(KingImmutable.InvalidKing.selector, _zero));
-        kingImmutable = new KingImmutableMockTest(_zero);
+        vm.expectRevert(abi.encodeWithSelector(KingImmutable.InvalidKing.selector, ZERO));
+        kingImmutable = new KingImmutableMockTest(ZERO);
     }
 
     // ----------------------------------------------- Test for Users write functions ----------------------------------
@@ -49,17 +49,17 @@ contract KingImmutableUnitTest is BaseTest {
         address currentKing = kingImmutable.currentKing();
 
         // Assert both are equal.
-        assertEq(currentKing, _king);
+        assertEq(currentKing, KING);
     }
 
     /// @notice Test to ensure isKing returns  `true` or `false`.
     function testIsKing_Returns() external {
-        // Prank as _king.
-        vm.startPrank(_king);
+        // Prank as KING.
+        vm.startPrank(KING);
 
         // Assign isKing and king.
-        bool isKing = kingImmutable.isKing(_king);
-        bool king = kingImmutable.isKing(_contractKing);
+        bool isKing = kingImmutable.isKing(KING);
+        bool king = kingImmutable.isKing(CONTRACTKING);
 
         // Stop prank.
         vm.stopPrank();
@@ -71,9 +71,9 @@ contract KingImmutableUnitTest is BaseTest {
 
     /// @notice test to ensure onlyKing modifier reverts unauthorized.
     function testIsKing_RevertsUnauthorized() external {
-        vm.expectRevert(abi.encodeWithSelector(KingImmutable.Unauthorized.selector, _user2, _king));
-        // Prank as user2.
-        vm.prank(_user2);
-        kingImmutable.isKing(_contractKing);
+        vm.expectRevert(abi.encodeWithSelector(KingImmutable.Unauthorized.selector, USER2, KING));
+        // Prank as USER2.
+        vm.prank(USER2);
+        kingImmutable.isKing(CONTRACTKING);
     }
 }

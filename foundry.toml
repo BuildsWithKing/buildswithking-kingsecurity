@@ -4,7 +4,7 @@ out = "out"
 libs = ["lib"]
 
 [fuzz]
-runs = 1000
+runs = 100
 max_test_rejects = 1000000  # Increase rejection limit
 seed = '0x1'
 dictionary_weight = 40

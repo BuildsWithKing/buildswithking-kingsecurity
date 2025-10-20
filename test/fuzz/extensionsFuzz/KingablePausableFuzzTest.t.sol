@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.30;
 
 /// @title KingablePausableFuzzTest.
 /// @author Michealking (@BuildsWithKing)
-/// @custom: security-contact buildswithking@gmail.com
+/// @custom:securitycontact buildswithking@gmail.com
 /**
- * @notice Created on the 25th Of Sept, 2025.
+ * @notice Created on the 25th of Sept, 2025.
  *
  *      KingablePausable fuzz test contract, verifying all features works as intended.
  */
-pragma solidity ^0.8.30;
 
 /// @notice Imports KingablePausableUnitTest, and KingablePausable contract.
 import {KingablePausableUnitTest} from "../../unit/extensionsunit/KingablePausableUnitTest.t.sol";
@@ -18,17 +18,17 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
     // ------------------------------------------------- Fuzz test: transferKingship --------------------------------
     /// @notice Fuzz test EOAs can become king.
     /// @param _randomKingAddress The random king's address.
-    function testFuzz_TransferKingshipEOA(address _randomKingAddress) external {
+    function testFuzz_TransferKingshipEOA(address _randomKingAddress) public {
         // Assume: Random king's Address are EOAs.
         vm.assume(
-            _randomKingAddress != address(0) && _randomKingAddress != _king
+            _randomKingAddress != address(0) && _randomKingAddress != KING
                 && _randomKingAddress != address(kingablePausable) && _randomKingAddress.code.length == 0
         );
 
-        // Prank as _king.
-        vm.prank(_king);
+        // Prank as KING.
+        vm.prank(KING);
         vm.expectEmit(true, true, false, false);
-        emit KingablePausable.KingshipTransferred(_king, _randomKingAddress);
+        emit KingablePausable.KingshipTransferred(KING, _randomKingAddress);
         kingablePausable.transferKingshipTo(_randomKingAddress);
 
         // Assert new king is set correctly.
@@ -37,17 +37,17 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
 
     /// @notice Fuzz test: Contract addresses can become king.
     /// @param _randomKingAddress The random king's address.
-    function testFuzz_TransferKingshipContracts(address _randomKingAddress) external {
+    function testFuzz_TransferKingshipContracts(address _randomKingAddress) public {
         // Assume: Random king's Address are contract.
         vm.assume(
-            _randomKingAddress != address(0) && _randomKingAddress != _contractKing
+            _randomKingAddress != address(0) && _randomKingAddress != CONTRACTKING
                 && _randomKingAddress != address(kingablePausable) && _randomKingAddress.code.length > 0
         );
 
-        // Prank as _king.
-        vm.prank(_king);
+        // Prank as KING.
+        vm.prank(KING);
         vm.expectEmit(true, true, false, false);
-        emit KingablePausable.KingshipTransferred(_king, _randomKingAddress);
+        emit KingablePausable.KingshipTransferred(KING, _randomKingAddress);
         kingablePausable.transferKingshipTo(_randomKingAddress);
 
         // Assert new king is set correctly.
@@ -56,11 +56,11 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
 
     // ------------------------------------------------- Fuzz test: renounceKingship --------------------------------
     /// @notice Fuzz test: King can renounce successfully.
-    function testFuzz_RenounceKingshipByKing() external {
-        // Prank as king.
-        vm.prank(_king);
+    function testFuzz_RenounceKingshipByKing() public {
+        // Prank as KING.
+        vm.prank(KING);
         vm.expectEmit(true, true, false, false);
-        emit KingablePausable.KingshipRenounced(_king, address(0));
+        emit KingablePausable.KingshipRenounced(KING, address(0));
         kingablePausable.renounceKingship();
 
         // Assert no king afterwards.
@@ -69,12 +69,12 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
 
     /// @notice Fuzz test: RenounceKingship reverts Unauthorized.
     /// @param _randomUserAddress The random users address.
-    function testFuzz_RenounceKingshipRevertsUnauthorized(address _randomUserAddress) external {
+    function testFuzz_RenounceKingshipRevertsUnauthorized(address _randomUserAddress) public {
         // Assume random user address is not king's address.
-        vm.assume(_randomUserAddress != _king);
+        vm.assume(_randomUserAddress != KING);
 
-        // Revert Unauthorized(_randomUserAddress, _king)
-        vm.expectRevert(abi.encodeWithSelector(KingablePausable.Unauthorized.selector, _randomUserAddress, _king));
+        // Revert Unauthorized(_randomUserAddress, KING)
+        vm.expectRevert(abi.encodeWithSelector(KingablePausable.Unauthorized.selector, _randomUserAddress, KING));
 
         // Prank as random users.
         vm.prank(_randomUserAddress);
@@ -85,16 +85,16 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
 
     /// @notice Fuzz test: Activate contract reverts.
     /// @param _randomUserAddress The random user's address.
-    function testFuzz_ActivateContractRevertsUnauthorized(address _randomUserAddress) external {
-        // Prank as _king.
-        vm.prank(_king);
+    function testFuzz_ActivateContractRevertsUnauthorized(address _randomUserAddress) public {
+        // Prank as KING.
+        vm.prank(KING);
         kingablePausable.pauseContract();
 
         // Assume random user address is not king's address.
-        vm.assume(_randomUserAddress != _king);
+        vm.assume(_randomUserAddress != KING);
 
         // Revert Unauthorized.
-        vm.expectRevert(abi.encodeWithSelector(KingablePausable.Unauthorized.selector, _randomUserAddress, _king));
+        vm.expectRevert(abi.encodeWithSelector(KingablePausable.Unauthorized.selector, _randomUserAddress, KING));
         vm.prank(_randomUserAddress);
         kingablePausable.activateContract();
 
@@ -106,12 +106,12 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
     // ------------------------------------------------ Fuzz test: Pause contract ----------------------------------------------
     /// @notice Fuzz test: Paused contract reverts.
     /// @param _randomUserAddress The random user's address.
-    function testFuzz_PauseContractRevertsUnauthorized(address _randomUserAddress) external {
+    function testFuzz_PauseContractRevertsUnauthorized(address _randomUserAddress) public {
         // Assume random user address is not king's address.
-        vm.assume(_randomUserAddress != _king);
+        vm.assume(_randomUserAddress != KING);
 
         // Revert Unauthorized.
-        vm.expectRevert(abi.encodeWithSelector(KingablePausable.Unauthorized.selector, _randomUserAddress, _king));
+        vm.expectRevert(abi.encodeWithSelector(KingablePausable.Unauthorized.selector, _randomUserAddress, KING));
         vm.prank(_randomUserAddress);
         kingablePausable.pauseContract();
 
@@ -125,9 +125,9 @@ contract KingablePausableFuzzTest is KingablePausableUnitTest {
     // ------------------------------------------------ Fuzz test: isKing ----------------------------------
     /// @notice Fuzz test: isKing.
     /// @param _randomUserAddress The random users address.
-    function testFuzz_IsKing(address _randomUserAddress) external {
+    function testFuzz_IsKing(address _randomUserAddress) public {
         // Assume random user address is not king's address.
-        vm.assume(_randomUserAddress != _king);
+        vm.assume(_randomUserAddress != KING);
 
         // Prank as _random user.
         vm.prank(_randomUserAddress);

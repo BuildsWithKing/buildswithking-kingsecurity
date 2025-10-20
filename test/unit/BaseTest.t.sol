@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.30;
 
 /// @title BaseTest.
 /// @author Michealking (@BuildsWithKing)
-/// @custom: security-contact buildswithking@gmail.com
+/// @custom:securitycontact buildswithking@gmail.com
 /**
- * @notice Created on the 23rd Of Sept, 2025.
+ * @notice  Created on the 23rd of Sept, 2025.
  *
- *     Base test contract that imports and deploys all core, extension, and mock contracts.
- *      Provides common setup variables for unit and fuzz tests.
+ * @dev     This Base test contract imports and deploys all core, extension, and mock contracts.
+ *          Provides common setup variables for unit and fuzz tests.
  */
-pragma solidity ^0.8.30;
 
 /**
- * @notice Imports Test from forge standard library, KingableEOAs, kingableContracts, KingPausable,
- *             KingablePausable, kingable, KingImmutable, Mocks, and Dummy contract.
+ * @notice  Imports Test from forge standard library, KingableEOAs, kingableContracts, KingPausable,
+ *          KingablePausable, kingable, KingImmutable, RejectETH, KingClaimMistakenETH,
+ *          KingReentrancyAttacker, VulnerableContract, Mocks, and Dummy contract.
  */
 import {Test} from "forge-std/Test.sol";
 import {KingableEOAs} from "../../src/extensions/KingableEOAs.sol";
@@ -22,21 +23,26 @@ import {KingPausable} from "../../src/extensions/KingPausable.sol";
 import {KingablePausable} from "../../src/extensions/KingablePausable.sol";
 import {Kingable} from "../../src/core/Kingable.sol";
 import {KingImmutable} from "../../src/core/KingImmutable.sol";
+import {KingRejectETH} from "../../src/guards/KingRejectETH.sol";
+import {KingClaimMistakenETH} from "../../src/guards/KingClaimMistakenETH.sol";
+import {KingReentrancyAttacker} from "../../src/utils/KingReentrancyAttacker.sol";
+import {KingVulnerableContract} from "../../src/utils/KingVulnerableContract.sol";
 import {KingableEOAsMockTest} from "../mocks/KingableEOAsMockTest.t.sol";
 import {KingableContractsMockTest} from "../mocks/KingableContractsMockTest.t.sol";
 import {KingPausableMockTest} from "../mocks/KingPausableMockTest.t.sol";
 import {KingablePausableMockTest} from "../mocks/KingablePausableMockTest.t.sol";
 import {KingableMockTest} from "../mocks/KingableMockTest.t.sol";
 import {KingImmutableMockTest} from "../mocks/KingImmutableMockTest.t.sol";
+import {KingRejectETHMockTest} from "../mocks/KingRejectETHMockTest.t.sol";
+import {KingClaimMistakenETHMockTest} from "../mocks/KingClaimMistakenETHMockTest.t.sol";
 import {DummyContract} from "./DummyContract.t.sol";
 
 contract BaseTest is Test {
-    // ------------------------------------------ Variable assignment -------------------------------------------
-
+    // ------------------------------------------ State Variable --------------------------------------
     /**
-     * @notice Assigns kingableEOAs, kingableContracts,
-     *     dummyContract, kingPausable, kingablePausable
-     *         kingable and kingImmutable.
+     * @notice  Assigns kingableEOAs, kingableContracts,
+     *          dummyContract, kingPausable, kingablePausable
+     *          kingable, kingImmutable, kingRejectETH, KingClaimMistakenETH, KingReentrancyAttacker and KingVulnerableContract.
      */
     KingableEOAsMockTest internal kingableEOAs;
     KingableContractsMockTest internal kingableContracts;
@@ -45,47 +51,80 @@ contract BaseTest is Test {
     KingablePausableMockTest internal kingablePausable;
     KingableMockTest internal kingable;
     KingImmutable internal kingImmutable;
+    KingRejectETHMockTest internal kingRejectETH;
+    KingClaimMistakenETHMockTest internal kingClaimMistakenETH;
+    KingReentrancyAttacker internal kingReentrancyAttacker;
+    KingVulnerableContract internal kingVulnerableContract;
 
-    /// @notice Assigns _king, _user2, _zero, _newking and _contractKing.
-    address internal _king = address(0x5);
-    address internal _user2 = address(0x2);
-    address internal constant _zero = address(0);
-    address internal _newKing = address(0x10);
-    address internal _contractKing;
+    /// @notice Assigns KING, USER1, USER2, ZERO, NEWKING, CONTRACTKING and attacker.
+    address internal constant KING = address(0x5);
+    address internal constant USER1 = address(0x1);
+    address internal constant USER2 = address(0x2);
+    address internal constant ZERO = address(0);
+    address internal constant NEWKING = address(0x10);
+    address internal CONTRACTKING;
+    address internal attacker = address(this);
 
-    // --------------------------------------------- SetUp function. --------------------------------------------
+    /// @notice Assigns STARTING_BALANCE, ETH_AMOUNT, MAX_REENTRANCY and FIFTY_ETHER.
+    uint256 internal constant STARTING_BALANCE = 10 ether;
+    uint256 internal constant ETH_AMOUNT = 1 ether;
+    uint8 internal constant MAX_REENTRANCY = 50;
+    uint256 internal constant FIFTY_ETHER = 50 ether;
 
+    // --------------------------------------------- SetUp Function -------------------------------------
     /// @notice This function runs before every other function.
-    function setUp() external {
+    function setUp() public {
         // Create a new instance of KingableEOAsMockTest.
-        kingableEOAs = new KingableEOAsMockTest(_king);
+        kingableEOAs = new KingableEOAsMockTest(KING);
 
         // Create a new instance of DummyContract.
         dummyContract = new DummyContract();
 
-        // Assign _contractKing.
-        _contractKing = address(dummyContract);
+        // Assign CONTRACTKING.
+        CONTRACTKING = address(dummyContract);
 
         // Create a new instance of KingableContractsMockTest.
-        kingableContracts = new KingableContractsMockTest(_contractKing);
+        kingableContracts = new KingableContractsMockTest(CONTRACTKING);
 
         // Create a new instance of KingPausableMockTest.
-        kingPausable = new KingPausableMockTest(_king);
+        kingPausable = new KingPausableMockTest(KING);
 
         // Create a new instance of KingablePausableMockTest.
-        kingablePausable = new KingablePausableMockTest(_king);
+        kingablePausable = new KingablePausableMockTest(KING);
 
         // Create a new instance of KingableMockTest.
-        kingable = new KingableMockTest(_king);
+        kingable = new KingableMockTest(KING);
 
         // Create a new instance of KingImmutableMockTest.
-        kingImmutable = new KingImmutableMockTest(_king);
+        kingImmutable = new KingImmutableMockTest(KING);
 
-        // Label _king, _zero and _newKing.
-        vm.label(_king, "KING");
-        vm.label(_user2, "USER2");
-        vm.label(_zero, "ZERO");
-        vm.label(_newKing, "NEWKING");
-        vm.label(_contractKing, "CONTRACTKING");
+        // Create a new instance of KingRejectETHMockTest.
+        kingRejectETH = new KingRejectETHMockTest();
+
+        // Create a new instance of KingClaimMistakenETHMockTest.
+        kingClaimMistakenETH = new KingClaimMistakenETHMockTest();
+
+        // Create a new instance of KingVulnerableContract.
+        kingVulnerableContract = new KingVulnerableContract();
+
+        // Create a new instance of KingReentrancyAttacker.
+        kingReentrancyAttacker = new KingReentrancyAttacker(payable(address(kingVulnerableContract)), MAX_REENTRANCY);
+
+        // Label KING, USER2, ZERO, NEWKING, CONTRACTKING and ATTACKER.
+        vm.label(KING, "KING");
+        vm.label(USER2, "USER2");
+        vm.label(ZERO, "ZERO");
+        vm.label(NEWKING, "NEWKING");
+        vm.label(CONTRACTKING, "CONTRACTKING");
+        vm.label(attacker, "ATTACKER");
+
+        // Fund USER2, CONTRACTKING & attacker 10 ETH EACH.
+        vm.deal(USER2, STARTING_BALANCE);
+        vm.deal(CONTRACTKING, STARTING_BALANCE);
+        vm.deal(attacker, STARTING_BALANCE);
     }
+
+    // --------------------------------------------- Receive Function -----------------------------------
+    /// @notice Handles ETH Deposit with no calldata for KingReentrancyAttackerUnitTest.
+    receive() external payable {}
 }

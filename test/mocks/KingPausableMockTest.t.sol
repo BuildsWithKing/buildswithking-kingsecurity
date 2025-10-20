@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.30;
 
 /// @title KingPausableMockTest.
 /// @author Michealking (@BuildsWithKing)
-/// @custom: security-contact buildswithking@gmail.com
+/// @custom:securitycontact buildswithking@gmail.com
 /**
- * @notice Created on the 23rd Of Sept, 2025.
+ * @notice Created on the 23rd of Sept, 2025.
  *
  *  Creating mocks for abstract contracts is the best and professional practice.
  */
-pragma solidity ^0.8.30;
 
 /// @notice Imports KingPausable contract.
 import {KingPausable} from "../../src/extensions/KingPausable.sol";

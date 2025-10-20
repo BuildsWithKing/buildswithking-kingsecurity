@@ -21,8 +21,7 @@ contract KingRejectETHTest is BaseTest {
         // Revert `ETHRejected`, since the contract rejects ETH.
         vm.expectRevert(KingRejectETH.EthRejected.selector);
         vm.prank(USER2);
-        (bool success,) = payable(address(kingRejectETH)).call{value: ETH_AMOUNT}("");
-        assertTrue(success);
+        payable(address(kingRejectETH)).call{value: ETH_AMOUNT}("");
     }
     // ------------------------------------------ Unit Test: Fallback Rejects ETH ---------------------
     /// @notice Test to ensure fallback reverts.
@@ -31,9 +30,8 @@ contract KingRejectETHTest is BaseTest {
         // Revert `ETHRejected`, since the contract rejects ETH.
         vm.expectRevert(KingRejectETH.EthRejected.selector);
         vm.prank(USER2);
-        (bool success,) = payable(address(kingRejectETH)).call{value: ETH_AMOUNT}(
+        payable(address(kingRejectETH)).call{value: ETH_AMOUNT}(
             hex"55641345000000000000000000000000000000000000000000000000000000000000006d"
         );
-        assertTrue(success);
     }
 }

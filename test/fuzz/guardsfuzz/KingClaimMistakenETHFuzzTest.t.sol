@@ -47,7 +47,7 @@ contract KingClaimMistakenETHFuzzTest is KingClaimMistakenETHUnitTest {
         vm.prank(_userAddress);
         vm.expectEmit(true, true, false, false);
         emit KingClaimMistakenETH.MistakenETHDeposited(_userAddress, _ethAmount);
-        (bool success,) = payable(address(kingClaimMistakenETH)).call{value: _ethAmount}("");
+        payable(address(kingClaimMistakenETH)).call{value: _ethAmount}("");
 
         // Assign totalMistakenETH balance before.
         uint256 balanceBefore = kingClaimMistakenETH.totalMistakenETH();

@@ -7,7 +7,7 @@ pragma solidity ^0.8.30;
 /**
  * @notice Created on the 8th of Oct, 2025.
  *
- *     Mock test contract for KingClaimMistakenETH.
+ *  @dev Creating mocks for abstract contracts is the best and professional practice.
  */
 
 /// @notice Imports KingClaimMistakenETH contract.

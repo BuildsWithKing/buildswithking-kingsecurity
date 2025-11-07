@@ -13,8 +13,8 @@ pragma solidity ^0.8.30;
 
 /**
  * @notice  Imports Test from forge standard library, KingableEOAs, kingableContracts, KingPausable,
- *          KingablePausable, kingable, KingImmutable, RejectETH, KingClaimMistakenETH,
- *          KingReentrancyAttacker, VulnerableContract, Mocks, and Dummy contract.
+ *          KingablePausable, Kingable, KingImmutable, KingAccessControlLite, RejectETH, KingERC20, KingERC20Pausable,
+ *             KingERC20Burnable, KingERC20Mintable, KingERC20Capped, KingClaimMistakenETH, KingReentrancyAttacker, VulnerableContract, Mocks, and Dummy contract.
  */
 import {Test} from "forge-std/Test.sol";
 import {KingableEOAs} from "../../src/extensions/KingableEOAs.sol";
@@ -23,8 +23,14 @@ import {KingPausable} from "../../src/extensions/KingPausable.sol";
 import {KingablePausable} from "../../src/extensions/KingablePausable.sol";
 import {Kingable} from "../../src/core/Kingable.sol";
 import {KingImmutable} from "../../src/core/KingImmutable.sol";
+import {KingAccessControlLite} from "../../src/core/KingAccessControlLite.sol";
 import {KingRejectETH} from "../../src/guards/KingRejectETH.sol";
 import {KingClaimMistakenETH} from "../../src/guards/KingClaimMistakenETH.sol";
+import {KingERC20} from "../../src/tokens/ERC20/KingERC20.sol";
+import {KingERC20Pausable} from "../../src/tokens/ERC20/extensions/KingERC20Pausable.sol";
+import {KingERC20Burnable} from "../../src/tokens/ERC20/extensions/KingERC20Burnable.sol";
+import {KingERC20Mintable} from "../../src/tokens/ERC20/extensions/KingERC20Mintable.sol";
+import {KingERC20Capped} from "../../src/tokens/ERC20/extensions/KingERC20Capped.sol";
 import {KingReentrancyAttacker} from "../../src/utils/KingReentrancyAttacker.sol";
 import {KingVulnerableContract} from "../../src/utils/KingVulnerableContract.sol";
 import {KingableEOAsMockTest} from "../mocks/KingableEOAsMockTest.t.sol";
@@ -36,13 +42,20 @@ import {KingImmutableMockTest} from "../mocks/KingImmutableMockTest.t.sol";
 import {KingRejectETHMockTest} from "../mocks/KingRejectETHMockTest.t.sol";
 import {KingClaimMistakenETHMockTest} from "../mocks/KingClaimMistakenETHMockTest.t.sol";
 import {DummyContract} from "./DummyContract.t.sol";
+import {KingAccessControlLiteMockTest} from "../mocks/KingAccessControlLiteMockTest.t.sol";
+import {KingERC20MockTest} from "../mocks/KingERC20MockTest.t.sol";
+import {KingERC20PausableMockTest} from "../mocks/KingERC20PausableMockTest.t.sol";
+import {KingERC20BurnableMockTest} from "../mocks/KingERC20BurnableMockTest.t.sol";
+import {KingERC20MintableMockTest} from "../mocks/KingERC20MintableMockTest.t.sol";
+import {KingERC20CappedMockTest} from "../mocks/KingERC20CappedMockTest.t.sol";
 
 contract BaseTest is Test {
     // ------------------------------------------ State Variable --------------------------------------
     /**
      * @notice  Assigns kingableEOAs, kingableContracts,
      *          dummyContract, kingPausable, kingablePausable
-     *          kingable, kingImmutable, kingRejectETH, KingClaimMistakenETH, KingReentrancyAttacker and KingVulnerableContract.
+     *          kingable, kingImmutable, kingRejectETH, KingClaimMistakenETH, KingReentrancyAttacker, KingVulnerableContract,
+     *             kingAccessControlLite, kingERC20, kingERC20Pausable, kingERC20Burnable, kingERC20Mintable, and kingERC20Capped.
      */
     KingableEOAsMockTest internal kingableEOAs;
     KingableContractsMockTest internal kingableContracts;
@@ -55,21 +68,35 @@ contract BaseTest is Test {
     KingClaimMistakenETHMockTest internal kingClaimMistakenETH;
     KingReentrancyAttacker internal kingReentrancyAttacker;
     KingVulnerableContract internal kingVulnerableContract;
+    KingAccessControlLiteMockTest internal kingAccessControlLite;
+    KingERC20MockTest internal kingERC20;
+    KingERC20PausableMockTest internal kingERC20Pausable;
+    KingERC20BurnableMockTest internal kingERC20Burnable;
+    KingERC20MintableMockTest internal kingERC20Mintable;
+    KingERC20CappedMockTest internal kingERC20Capped;
 
-    /// @notice Assigns KING, USER1, USER2, ZERO, NEWKING, CONTRACTKING and attacker.
+    /// @notice Assigns KING, USER1, USER2, ZERO, NEWKING, BURNER, MINTER, CONTRACTKING and attacker.
     address internal constant KING = address(0x5);
     address internal constant USER1 = address(0x1);
     address internal constant USER2 = address(0x2);
     address internal constant ZERO = address(0);
     address internal constant NEWKING = address(0x10);
+    address internal constant BURNER = address(0x11);
+    address internal constant MINTER = address(0x12);
     address internal CONTRACTKING;
     address internal attacker = address(this);
 
-    /// @notice Assigns STARTING_BALANCE, ETH_AMOUNT, MAX_REENTRANCY and FIFTY_ETHER.
+    /// @notice Assigns STARTING_BALANCE, ETH_AMOUNT, MAX_REENTRANCY, FIFTY_ETHER, ONE_MILLION, ONE_THOUSAND.
     uint256 internal constant STARTING_BALANCE = 10 ether;
     uint256 internal constant ETH_AMOUNT = 1 ether;
     uint8 internal constant MAX_REENTRANCY = 50;
     uint256 internal constant FIFTY_ETHER = 50 ether;
+    uint256 internal constant ONE_MILLION = 1000000;
+    uint16 internal constant ONE_THOUSAND = 1000;
+
+    /// @notice Records the token's name and symbol.
+    string internal KingERC;
+    string internal KERC;
 
     // --------------------------------------------- SetUp Function -------------------------------------
     /// @notice This function runs before every other function.
@@ -110,11 +137,31 @@ contract BaseTest is Test {
         // Create a new instance of KingReentrancyAttacker.
         kingReentrancyAttacker = new KingReentrancyAttacker(payable(address(kingVulnerableContract)), MAX_REENTRANCY);
 
-        // Label KING, USER2, ZERO, NEWKING, CONTRACTKING and ATTACKER.
+        // Create a new instance of KingAccessControlLite.
+        kingAccessControlLite = new KingAccessControlLiteMockTest(KING);
+
+        // Create a new instance of KingERC20.
+        kingERC20 = new KingERC20MockTest(KING, KingERC, KERC, ONE_MILLION);
+
+        // Create a new instance of KingERC20Pausable.
+        kingERC20Pausable = new KingERC20PausableMockTest(KING, KingERC, KERC, ONE_MILLION);
+
+        // Create a new instance of KingERC20Burnable.
+        kingERC20Burnable = new KingERC20BurnableMockTest(KING, KingERC, KERC, ONE_MILLION);
+
+        // Create a new instance of KingERC20Mintable.
+        kingERC20Mintable = new KingERC20MintableMockTest(KING, KingERC, KERC, ONE_MILLION);
+
+        // Create a new instance of KingERC20Capped.
+        kingERC20Capped = new KingERC20CappedMockTest(KING, KingERC, KERC, ONE_MILLION, ONE_MILLION);
+
+        // Label KING, USER2, ZERO, NEWKING, BURNER, MINTER, CONTRACTKING and ATTACKER.
         vm.label(KING, "KING");
         vm.label(USER2, "USER2");
         vm.label(ZERO, "ZERO");
         vm.label(NEWKING, "NEWKING");
+        vm.label(BURNER, "BURNER");
+        vm.label(MINTER, "MINTER");
         vm.label(CONTRACTKING, "CONTRACTKING");
         vm.label(attacker, "ATTACKER");
 

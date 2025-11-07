@@ -7,7 +7,7 @@ pragma solidity ^0.8.30;
 /**
  * @notice Created on the 24th of Sept, 2025.
  *
- *  Creating mocks for abstract contracts is the best and professional practice.
+ *  @dev Creating mocks for abstract contracts is the best and professional practice.
  */
 
 /// @notice Imports Kingable contract.

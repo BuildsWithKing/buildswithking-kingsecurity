@@ -15,10 +15,11 @@
 ---
 
 # 🛡 BuildsWithKing-KingSecurity
+**A modular Solidity security framework for building safer, auditable smart contracts.**
 
-A **security-focused Solidity suite** designed and implemented by **Michealking (@BuildsWithKing)**.  
+KingSecurity is designed around the idea that smart contract security should be modular, auditable, and human-readable. Every module enforces one invariant and can be combined like building blocks.
 
-This repository introduces modular smart contract security primitives such as **Kingable**, **KingPausable**, hybrid extensions, **KingClaimMistakenETH**, **KingReentrancyGuard** and **KingReentrancyAttacker**. Battle-tested with **unit tests**, **fuzz tests**, and **mock contracts** using Foundry.
+This repository introduces modular smart contract security primitives such as **Kingable**, **KingPausable**, hybrid extensions, **KingClaimMistakenETH**, **KingReentrancyGuard**, **KingERC20** and **KingReentrancyAttacker**. Battle-tested with **unit tests**, **fuzz tests**, and **mock contracts** using Foundry.
 
 > ⚠ Note: This repository serves as a testing and experimental workspace for the buildswithking-security library.
 It is not versioned, and features here may change without notice.
@@ -26,39 +27,44 @@ For stable modules, use the main [BuildsWithKing-Security](https://github.com/Bu
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 Audit-ready, modular Solidity security suite tested with Foundry.
 
 - [🛡 BuildsWithKing-KingSecurity](#-buildswithking-kingsecurity)
-  - [📑 Table of Contents](#-table-of-contents)
-  - [🔒 Overview](#-overview)
-  - [💡 Motivation](#-motivation)
-  - [🏛 Core Contracts](#-core-contracts)
-  - [🧩 Extensions](#-extensions)
-  - [🛡 Guards](#-guards)
-  - [🔐 Security](#-security)
-  - [🧪 Utils](#-utils)
-  - [🧪 Testing Strategy](#-testing-strategy)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Motivation](#motivation)
+  - [Core Contracts](#core-contracts)
+  - [Extensions](#extensions)
+  - [Guards](#guards)
+  - [Security](#security)
+  - [Tokens/ERC20](#tokenserc20)
+    - [KingERC20.sol](#kingerc20sol)
+    - [Extensions](#extensions-1)
+    - [Interfaces](#interfaces)
+    - [Errors](#errors)
+  - [Utils](#utils)
+  - [Testing Strategy](#testing-strategy)
     - [Unit Tests](#unit-tests)
     - [Fuzz Tests](#fuzz-tests)
     - [Mocks](#mocks)
-  - [🔐 Coverage](#-coverage)
-  - [🌳 File Structure](#-file-structure)
-  - [🚀 Getting Started](#-getting-started)
+  - [Coverage](#coverage)
+  - [File Structure](#file-structure)
+  - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Clone \& Install](#clone--install)
     - [Build \& Test](#build--test)
     - [Check Coverage with:](#check-coverage-with)
     - [Gas snapshot](#gas-snapshot)
-  - [⚡Installation:](#installation)
-  - [🛠️ Usage](#️-usage)
-  - [🛡 Security Considerations](#-security-considerations)
-  - [✍ Author](#-author)
-  - [📜 License](#-license)
+  - [Installation:](#installation)
+  - [Usage](#usage)
+  - [Security Considerations](#security-considerations)
+  - [Author](#author)
+  - [License](#license)
 
 ---
 
-## 🔒 Overview
+## Overview
 This **KingSecurity suite** enforces **ownership, pausing, and authority mechanics** in a way that is:
 
 - ✅ Transparent  
@@ -73,26 +79,29 @@ Each module is shipped with:
 
 ---
 
-## 💡 Motivation
+## Motivation
 Smart contract exploits often arise from **improper access control, missing pause mechanisms, or weak invariants**.  
 This project tackles those pain points by building **security extensions** that can be plugged into larger protocols.
 
-> ⚡ This repository is not a step-by-step guide, but a reference testing suite for the main [BuildsWithKing-Security](https://github.com/BuildsWithKing/buildswithking-security) repository.
+> This repository is not a step-by-step guide, but a reference testing suite for the main [BuildsWithKing-Security](https://github.com/BuildsWithKing/buildswithking-security) repository.
 
 ---
 
-## 🏛 Core Contracts
+## Core Contracts
 1. **Kingable.sol**  
    - Introduces the **“King” role** (customizable ownership).  
    - Supports *transferring* and *renouncing* kingship.  
 
 2. **KingImmutable.sol**  
    - Immutable king set at deployment.  
-   - No transfer or renounce allowed (*one true king forever*).  
+   - No transfer or renounce allowed (*one true king forever*). 
+
+3. **KingAccessControlLite.sol**
+   - Minimal and Gas-efficient role-based access control module for king-based contracts.
 
 ---
 
-## 🧩 Extensions
+## Extensions
 1. **KingPausable.sol**  
    - Pause/Activate core functions.  
    - Prevents unexpected activity during upgrades or active exploit scenarios.  
@@ -108,7 +117,7 @@ This project tackles those pain points by building **security extensions** that 
 
 ---
 
-## 🛡 Guards
+## Guards
 1. **KingClaimMistakenETH.sol**
    - Allows users to claim ETH mistakenly transferred to the child contract. 
 
@@ -117,18 +126,64 @@ This project tackles those pain points by building **security extensions** that 
 
 ---
 
-## 🔐 Security
+## Security
 1. **KingReentrancyGuard.sol**
    - Prevents reentrancy attacks using the `nonReentrant` modifier. 
 
-## 🧪 Utils
+## Tokens/ERC20
+
+### KingERC20.sol
+   - Core, modular ERC-20 implementation (balances, transfers, allowances, events).  
+   - Built to be inherited by extensions (mintable, burnable, capped) so the base remains minimal and auditable.  
+   - Uses *custom errors* and *address validation* for gas efficiency and clearer reverts.  
+
+### Extensions
+1. KingERC20Burnable.sol
+   - *Role-based burning extension* leveraging KingAccessControlLite.
+   - Allows the King to assign/remove BURNER_ROLE and authorized burner to burn tokens.  
+   - Designed to integrate with any ERC20 needing controlled burn logic; calls _burn on the base contract.  
+
+2. KingERC20Capped.sol
+   - Enforces a *maximum supply cap*, preventing minting above the defined limit.  
+   - Overrides _mint to check s_totalSupply + amount <= cap.  
+   - Ideal for tokens with *fixed maximum issuance*.  
+
+3. KingERC20Mintable.sol
+   - *Role-based minting extension* leveraging KingAccessControlLite.  
+   - Allows the King to assign/remove MINTER_ROLE and authorized minters to mint tokens.  
+   - Suitable for controlled inflation, staking rewards, or staged issuance.  
+
+4. KingERC20Pausable.sol
+   - Adds *emergency whenActive* gating to core write functions (transfer, approve, mint, burn).  
+   - Inherits behavior from KingPausable; enhances safety during maintenance, upgrades, or exploit responses.  
+
+### Interfaces
+1. IERC20.sol
+   - Minimal ERC-20 interface defining *core events and functions*.  
+   - Ensures *interoperability* and standard compliance with ERC-20 ecosystem tools.  
+
+2. IERC20Metadata.sol
+   - ERC-20 *metadata interface* exposing name, symbol, and decimals.  
+   - Keeps the base contract lightweight and modular.  
+
+### Errors
+1. KingERC20Errors.sol
+   - Centralized collection of *custom errors* for the entire ERC-20 stack (e.g., InsufficientBalance, ZeroInitialSupply).  
+   - Reduces duplicate revert messages and saves gas compared to require strings.  
+
+## Utils
 1. **KingReentrancyAttacker.sol**
    - Reusable attacker contract for testing reentrancy vulnerabilities.
 
 2. **KingVulnerableContract.sol**
    - A deliberately insecure contract used to simulate reentrancy attacks. 
+  
+3. **KingCheckAddressLib.sol**
+- Lightweight *utility library* that validates addresses.  
+- Replaces repetitive `if(account == address(0))` checks for cleaner code.  
+- Gas-efficient and improves *consistency across contracts*.
 
-## 🧪 Testing Strategy
+## Testing Strategy
 Testing is powered by **Foundry**.  
 All contracts are verified against *unit, fuzz, and mock tests* to ensure correctness, robustness, and edge-case coverage. 
 
@@ -149,54 +204,106 @@ All contracts are verified against *unit, fuzz, and mock tests* to ensure correc
  
 ---
 
-## 🔐 Coverage
+## Coverage
 Below is the current coverage report snapshot (100%).
 ![alt text](Screenshot/image.png)
 
 
-## 🌳 File Structure
+## File Structure
+This tree illustrates a 1:1 mapping between production modules and their corresponding test suites (unit, fuzz, mock).
 ```bash
-.
-├── src
-│   ├── core
-│   │   ├── KingImmutable.sol
-│   │   └── Kingable.sol
-│   ├── extensions
-│   |   ├── KingPausable.sol
-│   |   ├── KingableContracts.sol
-│   |   ├── KingableEOAs.sol
-│   |   └── KingablePausable.sol
-|   ├── guards 
-|   |   ├── KingClaimMistakenETH.sol
-|   |   ├── KingRejectETH.sol
-|   |
-|   ├── security 
-|   |   ├── KingReentrancyGuard.sol
-|   | 
-|   ├── utils
-|       ├── KingReentrancyAttacker.sol
-|       ├── KingVulnerableContract.sol
+
+src
+├── core
+│   ├── KingAccessControlLite.sol
+│   ├── KingImmutable.sol
+│   └── Kingable.sol
+├── extensions
+│   ├── KingPausable.sol
+│   ├── KingableContracts.sol
+│   ├── KingableEOAs.sol
+│   └── KingablePausable.sol
+├── guards
+│   ├── KingClaimMistakenETH.sol
+│   └── KingRejectETH.sol
+├── security
+│   └── KingReentrancyGuard.sol
+├── tokens
+│   ├── ERC20
+│   │   ├── KingERC20.sol
+│   │   ├── extensions
+│   │   │   ├── KingERC20Burnable.sol
+│   │   │   ├── KingERC20Capped.sol
+│   │   │   ├── KingERC20Mintable.sol
+│   │   │   └── KingERC20Pausable.sol
+│   │   └── interfaces
+│   │       ├── IERC20.sol
+│   │       └── IERC20Metadata.sol
+│   └── errors
+│       └── KingERC20Errors.sol
+└── utils
+|   ├── KingCheckAddressLib.sol
+|   ├── KingReentrancyAttacker.sol
+|   └── KingVulnerableContract.sol
 |
-|
-└── test
-    ├── fuzz
-    │   ├── corefuzz
-    |   ├── extensionsfuzz
-    │   └── guardsfuzz
-    ├── mocks
-    └── unit
-        ├── coreunit
-        ├── extensionsunit
-        ├── guardsunit
-        ├── utilsunit
-        ├── BaseTest.t.sol
-        └── DummyContract.t.sol
-   
+test
+├── fuzz
+│   ├── corefuzz
+│   │   ├── KingAccessControlLiteFuzzTest.t.sol
+│   │   └── KingableFuzzTest.t.sol
+│   ├── extensionsFuzz
+│   │   ├── KingPausableFuzzTest.t.sol
+│   │   ├── KingableContractsFuzzTest.t.sol
+│   │   ├── KingableEOAsFuzzTest.t.sol
+│   │   └── KingablePausableFuzzTest.t.sol
+│   └── guardsfuzz
+│       └── KingClaimMistakenETHFuzzTest.t.sol
+├── mocks
+│   ├── KingAccessControlLiteMockTest.t.sol
+│   ├── KingClaimMistakenETHMockTest.t.sol
+│   ├── KingERC20BurnableMockTest.t.sol
+│   ├── KingERC20CappedMockTest.t.sol
+│   ├── KingERC20MintableMockTest.t.sol
+│   ├── KingERC20MockTest.t.sol
+│   ├── KingERC20PausableMockTest.t.sol
+│   ├── KingImmutableMockTest.t.sol
+│   ├── KingPausableMockTest.t.sol
+│   ├── KingRejectETHMockTest.t.sol
+│   ├── KingableContractsMockTest.t.sol
+│   ├── KingableEOAsMockTest.t.sol
+│   ├── KingableMockTest.t.sol
+│   └── KingablePausableMockTest.t.sol
+└── unit
+    ├── BaseTest.t.sol
+    ├── DummyContract.t.sol
+    ├── coreunit
+    │   ├── KingAccessControlLiteUnitTest.t.sol
+    │   ├── KingImmutableUnitTest.t.sol
+    │   └── KingableUnitTest.t.sol
+    ├── extensionsunit
+    │   ├── KingPausableUnitTest.t.sol
+    │   ├── KingableContractsUnitTest.t.sol
+    │   ├── KingableEOAsUnitTest.t.sol
+    │   └── KingablePausableUnitTest.t.sol
+    ├── guardsunit
+    │   ├── KingClaimMistakenETHUnitTest.t.sol
+    │   └── KingRejectETHTest.t.sol
+    ├── tokens
+    │   └── ERC20
+    │       ├── KingERC20FuzzTest.t.sol
+    │       ├── KingERC20UnitTest.t.sol
+    │       └── extensionsunit
+    │           ├── KingERC20BurnableUnitTest.t.sol
+    │           ├── KingERC20CappedUnitTest.t.sol
+    │           ├── KingERC20MintableUnitTest.t.sol
+    │           └── KingERC20PausableUnitTest.t.sol
+    └── utilsunit
+        └── KingReentracyAttackerUnitTest.t.sol
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -227,7 +334,7 @@ forge coverage
 forge snapshot
 ```
 
-## ⚡Installation: 
+## Installation: 
 
 Install this package into your Foundry/Hardhat project by adding it as a Git submodule or using forge install:
 
@@ -242,7 +349,7 @@ import {KingReentrancyGuard} from "buildswithking-security/contracts/security/Ki
 ```
 ---
 
-## 🛠️ Usage
+## Usage
 
 To inherit `Kingable` & `KingReentrancyGuard` in your contract:
 
@@ -262,7 +369,7 @@ contract MyDapp is KingReentrancyGuard, Kingable {
 }
 ```
 
-## 🛡 Security Considerations
+## Security Considerations
 
 This repo is a security primitives library, not a production protocol.
 
@@ -274,7 +381,7 @@ Includes custom errors and reverts for gas savings and safety.
 
 ---
 
-## ✍ Author
+## Author
 
 Michealking (@BuildsWithKing)
 
@@ -292,7 +399,7 @@ Security-focused, building transparent protocols
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License.
 

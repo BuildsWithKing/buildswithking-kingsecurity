@@ -25,7 +25,6 @@ abstract contract KingImmutable {
     error InvalidKing(address _invalidAddress);
 
     // ----------------------------------------------------------- State Variable --------------------------------------------
-
     /// @notice Records the king's address.
     address internal immutable s_king;
 
@@ -53,7 +52,6 @@ abstract contract KingImmutable {
     }
 
     // ------------------------------------------------------------ Modifier ----------------------------------------------------------
-
     /// @dev Restricts access to only the king.
     modifier onlyKing() {
         // Revert if caller is not the king.
@@ -64,7 +62,6 @@ abstract contract KingImmutable {
     }
 
     // --------------------------------------------------- King's Write Function -----------------------------------------------------
-
     /// @notice Checks if the given address is the current king.
     /// @dev Restricted to the king for demonstration/testing of the "onlyKing" modifier.
     /// @return `true` if address is the king, otherwise `false`.
@@ -74,7 +71,6 @@ abstract contract KingImmutable {
     }
 
     // --------------------------------------------------- Users Public Read Function ------------------------------------------------
-
     /// @notice Returns the current king's address.
     /// @return The current king's address.
     function currentKing() public view virtual returns (address) {

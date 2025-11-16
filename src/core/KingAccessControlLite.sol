@@ -12,7 +12,7 @@ import {KingCheckAddressLib} from "../utils/KingCheckAddressLib.sol";
 
 abstract contract KingAccessControlLite {
     // --------------------------------------- Custom Errors -----------------------------------------
-    /// @notice Thrown for unathorized access.
+    /// @notice Thrown for unauthorized access.
     /// @dev Thrown when a user tries to perform a restricted operation without the required role.
     /// @param caller The caller's address.
     /// @param role The current role.
@@ -63,11 +63,12 @@ abstract contract KingAccessControlLite {
     // ------------------------------------------ Constructor -----------------------------------------
     /// @notice Assigns the deployer as the initial king.
     /// @dev Sets the king's role at deployment.
+    /// @param king_ The king's address.
     constructor(address king_) {
         // Call the internal Library `ensureNonZero` function.
         KingCheckAddressLib.ensureNonZero(king_);
 
-        // Assign KING_ROLE to the _king.
+        // Assign KING_ROLE to the king_.
         unchecked {
             s_roles[KING_ROLE][king_] = true;
         }
@@ -144,6 +145,24 @@ abstract contract KingAccessControlLite {
 
         // Emit the event RoleGranted.
         emit RoleGranted(msg.sender, KING_ROLE, newKing);
+    }
+
+    // ------------------------------------------- External Write Function --------------------------
+    /// @notice Renounces the caller's role.
+    /// @param role The role to be renounced.
+    function renounceRole(bytes32 role) external {
+        // Return if the caller is the king.
+        if (s_roles[KING_ROLE][msg.sender]) {
+            return;
+        }
+
+        // Renounce the caller's role.
+        unchecked {
+            s_roles[role][msg.sender] = false;
+        }
+
+        // Emit the event RoleRevoked.
+        emit RoleRevoked(msg.sender, role, msg.sender);
     }
 
     // ------------------------------------------- Public Read Function ------------------------------

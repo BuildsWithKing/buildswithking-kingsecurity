@@ -5,6 +5,10 @@ pragma solidity ^0.8.30;
 /// @author Michealking (@BuildsWithKing).
 /// @notice Created on the 31st of Oct, 2025.
 /// @custom:securitycontact buildswithking@gmail.com
+/**
+ * @notice This contract defines the base ERC20 logic.
+ * It manages token transfers, approvals, minting, and burning. Following the ERC20 standard.
+ */
 
 /// @notice Imports IERC20Metadata interface, KingERC20Errors contract and KingCheckAddressLib Library.
 import {IERC20Metadata} from "./interfaces/IERC20Metadata.sol";
@@ -26,10 +30,10 @@ abstract contract KingERC20 is KingERC20Errors, IERC20Metadata {
     uint256 internal s_totalSupply;
 
     // ------------------------------------------------ Mappings --------------------------------------------------------
-    /// @notice Maps user's address to their respective balance.
+    /// @notice Maps a user's address to their respective balance.
     mapping(address => uint256) private s_balances;
 
-    /// @notice Maps user's address to spender's address and allowance.
+    /// @notice Maps a user's address to their spender's address and allowance.
     /**
      * @dev Allowance is the amount of token approved by a token owner to a spender.
      *     It allows the spender to spend the specific amount of token on behalf of the owner.
@@ -79,6 +83,9 @@ abstract contract KingERC20 is KingERC20Errors, IERC20Metadata {
         // Assign the initial supply to the king's balance.
         s_balances[king_] = initialSupply_;
 
+        // Emit the event Minted.
+        emit Minted(address(0), king_, initialSupply_);
+
         // Emit the event Transfer.
         emit Transfer(address(0), king_, initialSupply_);
     }
@@ -93,14 +100,17 @@ abstract contract KingERC20 is KingERC20Errors, IERC20Metadata {
         KingCheckAddressLib.ensureNonZero(from);
         KingCheckAddressLib.ensureNonZero(to);
 
+        // Read the sender's balance.
+        uint256 fromBalance = s_balances[from];
+
         // Revert if the transfer amount is greater than the sender's balance.
-        if (amount > s_balances[from]) {
-            revert InsufficientBalance(s_balances[from]);
+        if (amount > fromBalance) {
+            revert InsufficientBalance(fromBalance);
         }
 
         // Subtract the amount from the sender's balance and Add to the receiver's balance.
         unchecked {
-            s_balances[from] -= amount;
+            s_balances[from] = fromBalance - amount;
             s_balances[to] += amount;
         }
 
@@ -130,7 +140,7 @@ abstract contract KingERC20 is KingERC20Errors, IERC20Metadata {
     /// @param amount The amount of token to be transferred.
     /// @return True if the transfer succeeds.
     function transfer(address to, uint256 amount) external virtual returns (bool) {
-        // Call the internal `transfer` function.
+        // Call the internal `_transfer` function.
         _transfer(msg.sender, to, amount);
 
         return true;
@@ -141,6 +151,7 @@ abstract contract KingERC20 is KingERC20Errors, IERC20Metadata {
     /// @param amount The amount of token to be spent by the spender.
     /// @return True if the approval succeeds.
     function approve(address spender, uint256 amount) external virtual returns (bool) {
+        // Call the internal `_approve` function.
         _approve(msg.sender, spender, amount);
 
         return true;
@@ -152,16 +163,19 @@ abstract contract KingERC20 is KingERC20Errors, IERC20Metadata {
     /// @param amount The amount of token to be spent by the spender.
     /// @return True if the transfer succeeds.
     function transferFrom(address from, address to, uint256 amount) external virtual returns (bool) {
+        // Read the spender's allowance.
+        uint256 fromAllowance = s_allowances[from][msg.sender];
+
         // Revert if the amount is greater than the spender's allowance.
-        if (amount > s_allowances[from][msg.sender]) {
-            revert InsufficientAllowance(s_allowances[from][msg.sender]);
+        if (amount > fromAllowance) {
+            revert InsufficientAllowance(fromAllowance);
         }
 
         // Check if the spender's allowance is not unlimited.
-        if (s_allowances[from][msg.sender] != type(uint256).max) {
+        if (fromAllowance != type(uint256).max) {
             // Subtract the amount from the spender's allowance.
             unchecked {
-                s_allowances[from][msg.sender] -= amount;
+                s_allowances[from][msg.sender] = fromAllowance - amount;
             }
         }
 
@@ -219,7 +233,7 @@ abstract contract KingERC20 is KingERC20Errors, IERC20Metadata {
     /// @notice Mints tokens to an address. Should be callable only by the king or the minter.
     /// @dev Create an external function to access or Import KingERC20Mintable.
     /// @param to The receiver's address.
-    /// @param amount The amount of token to be minted.
+    /// @param amount The amount of tokens to be minted.
     function _mint(address to, uint256 amount) internal virtual {
         // Call the internal Library `ensureNonZero` function.
         KingCheckAddressLib.ensureNonZero(to);
@@ -245,14 +259,17 @@ abstract contract KingERC20 is KingERC20Errors, IERC20Metadata {
         // Call the internal Library `ensureNonZero` function.
         KingCheckAddressLib.ensureNonZero(from);
 
+        // Read the sender's balance.
+        uint256 fromBalance = s_balances[from];
+
         // Revert if the amount to be burned is greater than the sender's balance.
-        if (amount > s_balances[from]) {
-            revert InsufficientBalance(s_balances[from]);
+        if (amount > fromBalance) {
+            revert InsufficientBalance(fromBalance);
         }
 
         // Subtract the amount from the sender's balance and from the token's total supply.
         unchecked {
-            s_balances[from] -= amount;
+            s_balances[from] = fromBalance - amount;
             s_totalSupply -= amount;
         }
 

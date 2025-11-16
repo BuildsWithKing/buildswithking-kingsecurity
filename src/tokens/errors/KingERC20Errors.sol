@@ -10,6 +10,7 @@ abstract contract KingERC20Errors {
     // -------------------------------------------------- Custom Errors --------------------------------------------------
     /// @notice Thrown for zero address input.
     /// @dev Thrown when the deployer or sender inputs the zero address.
+    /// @param addr The zero address.
     error ZeroAddress(address addr);
 
     /// @notice Thrown for zero initial supply input.
@@ -18,10 +19,12 @@ abstract contract KingERC20Errors {
 
     /// @notice Thrown for insufficient balance.
     /// @dev Thrown when the sender's balance is less than the transfer amount.
+    /// @param balance The sender's balance.
     error InsufficientBalance(uint256 balance);
 
     /// @notice Thrown for insufficient allowance.
     /// @dev Thrown when the spender's allowance is less than the transfer amount.
+    /// @param allowance The spender's allowance.
     error InsufficientAllowance(uint256 allowance);
 
     /// @notice Thrown for zero capped supply input.
@@ -33,6 +36,6 @@ abstract contract KingERC20Errors {
     error CapExceeded();
 
     /// @notice Thrown for unauthorized access.
-    /// @dev Thrown when a user tries performing the king and burner only operation.
+    /// @dev Thrown when a user tries performing the king and burner's only operation.
     error NotAuthorized();
 }

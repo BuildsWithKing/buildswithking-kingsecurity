@@ -21,7 +21,7 @@ import {KingERC20PausableMockTest} from "../../../../mocks/KingERC20PausableMock
 contract KingERC20PausableUnitTest is BaseTest {
     // -------------------------------------------------- Unit Test: Constructor -------------------------------------
     /// @notice Test to ensure the constructor sets the king, token details and assigns initial supply to the king at deployment.
-    function testConstructor_Succeeds() public {
+    function testConstructor_Succeeds() public view {
         // Assert the king is equal to King.
         assertEq(kingPausable.currentKing(), KING);
 
@@ -198,25 +198,25 @@ contract KingERC20PausableUnitTest is BaseTest {
 
     // ---------------------------------------------------- Unit Test: Read Functions -----------------------------------------------
     /// @notice Test to ensure users can view the token's total supply.
-    function testTotalSupply_Returns() public {
+    function testTotalSupply_Returns() public view {
         // Assert the token's total supply is equal to 1,000,000.
         assertEq(kingERC20Pausable.totalSupply(), ONE_MILLION);
     }
 
     /// @notice Test to ensure users can view the token's name.
-    function testName_Returns() public {
+    function testName_Returns() public view {
         // Assert the token's name is KingERC.
         assertEq(kingERC20Pausable.name(), KingERC);
     }
 
     /// @notice Test to ensure users can view the token's symbol.
-    function testSymbol_Returns() public {
+    function testSymbol_Returns() public view {
         // Assert the token's symbol is KERC.
         assertEq(kingERC20Pausable.symbol(), KERC);
     }
 
     /// @notice Test to ensure users can view the token's decimal.
-    function testDecimals_Returns() public {
+    function testDecimals_Returns() public view {
         // Assert the token's decimal is 18.
         assertEq(kingERC20Pausable.decimals(), 18);
     }

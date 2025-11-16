@@ -125,4 +125,21 @@ contract KingERC20MintableUnitTest is BaseTest {
         // Assert the token's total supply is equal to 2,000,000.
         assertEq(kingERC20Mintable.totalSupply(), twoMillion);
     }
+
+    // -------------------------------------------------- Unit Test: External Write Function ------------------------------------
+    /// @notice Test to ensure the minter can renounce the minter role using the external write function.
+    function testRenounceRole_Succeeds() public {
+        // Emit the event MinterAssigned and prank as the king.
+        vm.expectEmit(true, true, false, false);
+        emit KingERC20Mintable.MinterAssigned(KING, MINTER);
+        vm.prank(KING);
+        kingERC20Mintable.assignMinter(MINTER);
+
+        // Prank and renounce the minter role as the minter.
+        vm.prank(MINTER);
+        kingERC20Mintable.renounceRole(kingERC20Mintable.MINTER_ROLE());
+
+        // Assert the minter no longer has the minter's role.
+        assertEq(kingAccessControlLite.hasRole(kingERC20Mintable.MINTER_ROLE(), MINTER), false);
+    }
 }

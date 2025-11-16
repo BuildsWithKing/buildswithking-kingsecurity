@@ -23,12 +23,12 @@ abstract contract KingERC20Burnable is KingAccessControlLite, KingERC20 {
     /// @notice Emitted once the king assigns a burner.
     /// @param king The king's address.
     /// @param burner The burner's address.
-    event BurnerAssigned(address king, address burner);
+    event BurnerAssigned(address indexed king, address indexed burner);
 
     /// @notice Emitted once the king removes the burner's role.
     /// @param king The king's address.
     /// @param oldBurner The old burner's address.
-    event BurnerRemoved(address king, address oldBurner);
+    event BurnerRemoved(address indexed king, address indexed oldBurner);
 
     // ----------------------------------------------- King's Write Functions ----------------------------------------------
     /// @notice Assigns the burner. Callable only by the king.

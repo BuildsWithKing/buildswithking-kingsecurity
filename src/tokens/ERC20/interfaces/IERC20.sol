@@ -5,7 +5,8 @@ pragma solidity ^0.8.30;
 /// @author Michealking (@BuildsWithKing).
 /// @notice Created on the 31st of Oct, 2025.
 /// @custom:securitycontact buildswithking@gmail.com
-/// @dev ERC-20 standard Interface as defined in EIPs.
+/// @dev ERC-20 standard interface as defined in EIP-20: https://eips.ethereum.org/EIPS/eip-20
+/// @notice ERC-20 interface defining the standard token functions and events.
 
 interface IERC20 {
     // ------------------------------------------------ Events ----------------------------------------------------------

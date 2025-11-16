@@ -58,4 +58,15 @@ contract KingAccessControlLiteUnitTest is BaseTest {
         vm.prank(USER2);
         kingAccessControlLite.transferKingRole(USER2);
     }
+
+    // -------------------------------------------------- Unit Test: External Write Function ------------------------------------
+    /// @notice Test to ensure the king can't renounce the king role using the external write function.
+    function testRenounceRole_ReturnsForKingRole() public {
+        // Prank and renounce the king role as the king.
+        vm.prank(KING);
+        kingAccessControlLite.renounceRole(kingAccessControlLite.KING_ROLE());
+
+        // Assert the king is still the current king and still has the king role.
+        assertEq(kingAccessControlLite.hasRole(kingAccessControlLite.KING_ROLE(), KING), true);
+    }
 }

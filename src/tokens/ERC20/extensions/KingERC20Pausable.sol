@@ -83,19 +83,22 @@ abstract contract KingERC20Pausable is KingPausable, IERC20Metadata, KingERC20Er
     /// @param from The sender's address.
     /// @param to The receiver's address.
     /// @param amount The amount of token to be transferred.
-    function _transfer(address from, address to, uint256 amount) internal whenActive {
-        // Call the internal Library ensureNonZero function.
+    function _transfer(address from, address to, uint256 amount) internal virtual whenActive {
+        // Call the internal Library `ensureNonZero` function.
         KingCheckAddressLib.ensureNonZero(from);
         KingCheckAddressLib.ensureNonZero(to);
 
+        // Read the sender's balance.
+        uint256 fromBalance = s_balances[from];
+
         // Revert if the transfer amount is greater than the sender's balance.
-        if (amount > s_balances[from]) {
-            revert InsufficientBalance(s_balances[from]);
+        if (amount > fromBalance) {
+            revert InsufficientBalance(fromBalance);
         }
 
         // Subtract the amount from the sender's balance and Add to the receiver's balance.
         unchecked {
-            s_balances[from] -= amount;
+            s_balances[from] = fromBalance - amount;
             s_balances[to] += amount;
         }
 
@@ -107,8 +110,8 @@ abstract contract KingERC20Pausable is KingPausable, IERC20Metadata, KingERC20Er
     /// @param owner The owner's address.
     /// @param spender The spender's address.
     /// @param amount The amount of token to be spent by the spender.
-    function _approve(address owner, address spender, uint256 amount) internal whenActive {
-        // Call the internal Library ensureNonZero function.
+    function _approve(address owner, address spender, uint256 amount) internal virtual whenActive {
+        // Call the internal Library `ensureNonZero` function.
         KingCheckAddressLib.ensureNonZero(owner);
         KingCheckAddressLib.ensureNonZero(spender);
 
@@ -125,7 +128,7 @@ abstract contract KingERC20Pausable is KingPausable, IERC20Metadata, KingERC20Er
     /// @param amount The amount of token to be transferred.
     /// @return True if the transfer succeeds.
     function transfer(address to, uint256 amount) external virtual whenActive returns (bool) {
-        // Call the internal transfer function.
+        // Call the internal `_transfer` function.
         _transfer(msg.sender, to, amount);
 
         return true;
@@ -136,6 +139,7 @@ abstract contract KingERC20Pausable is KingPausable, IERC20Metadata, KingERC20Er
     /// @param amount The amount of token to be spent by the spender.
     /// @return True if the approval succeeds.
     function approve(address spender, uint256 amount) external virtual whenActive returns (bool) {
+        // Call the internal `_approve` function.
         _approve(msg.sender, spender, amount);
 
         return true;
@@ -147,20 +151,23 @@ abstract contract KingERC20Pausable is KingPausable, IERC20Metadata, KingERC20Er
     /// @param amount The amount of token to be spent by the spender.
     /// @return True if the transfer succeeds.
     function transferFrom(address from, address to, uint256 amount) external virtual whenActive returns (bool) {
+        // Read the spender's allowance.
+        uint256 fromAllowance = s_allowances[from][msg.sender];
+
         // Revert if the amount is greater than the spender's allowance.
-        if (amount > s_allowances[from][msg.sender]) {
-            revert InsufficientAllowance(s_allowances[from][msg.sender]);
+        if (amount > fromAllowance) {
+            revert InsufficientAllowance(fromAllowance);
         }
 
         // Check if the spender's allowance is not unlimited.
-        if (s_allowances[from][msg.sender] != type(uint256).max) {
+        if (fromAllowance != type(uint256).max) {
             // Subtract the amount from the spender's allowance.
             unchecked {
-                s_allowances[from][msg.sender] -= amount;
+                s_allowances[from][msg.sender] = fromAllowance - amount;
             }
         }
 
-        // Call the internal _transfer function.
+        // Call the internal `_transfer` function.
         _transfer(from, to, amount);
 
         return true;
@@ -210,13 +217,13 @@ abstract contract KingERC20Pausable is KingPausable, IERC20Metadata, KingERC20Er
         return s_allowances[owner][spender];
     }
 
-    // -------------------------------------- King and Minter's Internal Functions ---------------------------------
+    // -------------------------------------- King, Minter and Burner's Internal Functions ---------------------------------
     /// @notice Mints tokens to an address. Should be callable only by the king or the minter.
     /// @dev Create an external function to access or Import KingERC20Mintable.
     /// @param to The receiver's address.
-    /// @param amount The amount of token to be minted.
-    function _mint(address to, uint256 amount) internal whenActive {
-        // Call the internal Library ensureNonZero function.
+    /// @param amount The amount of tokens to be minted.
+    function _mint(address to, uint256 amount) internal virtual whenActive {
+        // Call the internal Library `ensureNonZero` function.
         KingCheckAddressLib.ensureNonZero(to);
 
         // Add the amount to the token's total supply and to the receiver's balance.
@@ -232,23 +239,25 @@ abstract contract KingERC20Pausable is KingPausable, IERC20Metadata, KingERC20Er
         emit Minted(msg.sender, to, amount);
     }
 
-    // -------------------------------------- King and Burner's Internal Functions ---------------------------------
     /// @notice Burns token. i.e Removes certain amount of the token from existence.
     /// @dev Create an external function to access or Import KingERC20Burnable.
     /// @param from The sender's address.
     /// @param amount The amount of tokens to be burned.
-    function _burn(address from, uint256 amount) internal whenActive {
-        // Call the internal Library ensureNonZero function.
+    function _burn(address from, uint256 amount) internal virtual whenActive {
+        // Call the internal Library `ensureNonZero` function.
         KingCheckAddressLib.ensureNonZero(from);
 
+        // Read the sender's balance.
+        uint256 fromBalance = s_balances[from];
+
         // Revert if the amount to be burned is greater than the sender's balance.
-        if (amount > s_balances[from]) {
-            revert InsufficientBalance(s_balances[from]);
+        if (amount > fromBalance) {
+            revert InsufficientBalance(fromBalance);
         }
 
         // Subtract the amount from the sender's balance and from the token's total supply.
         unchecked {
-            s_balances[from] -= amount;
+            s_balances[from] = fromBalance - amount;
             s_totalSupply -= amount;
         }
 
